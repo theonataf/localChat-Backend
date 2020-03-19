@@ -17,3 +17,5 @@ const HandleDB = {
     fs.writeFileSync("./messagesdb.json", JSON.stringify(f));
   }
 };
+
+exports.dbHandler = HandleDB;
