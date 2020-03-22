@@ -1,29 +1,35 @@
-var http = require("http");
+const cors = require("cors");
+const app = require("express")();
 
-// Chargement du fichier index.html affiché au client
-var server = http.createServer((req, res) => {
-  fs.readFile("./index.html", "utf-8", (error, content) => {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(content);
-  });
+const server = require("http").createServer(app);
+const io = require("socket.io").listen(server);
+const getAllMessages = require("./handleDb").getAllMessages;
+const writeNewMessageTodb = require("./handleDb").writeNewMessageTodb;
+
+app.use(cors());
+
+app.get("/", (req, res) => {
+  res.end("bonjour");
 });
-
-// Chargement de socket.io
-var io = require("socket.io").listen(server);
+app.get("/getMessages", (req, res) => {
+  const messages = getAllMessages();
+  console.log(messages);
+  res.json(messages);
+});
 
 // Quand un client se connecte, on le note dans la console
 io.sockets.on("connection", socket => {
-  socket.emit("newConnection", {
-    content: "Vous êtes bien connecté !",
-    importance: "1"
+  socket.on("newUser", user => {
+    socket.user = user;
+    console.log(socket.user);
   });
 
-  socket.on("petit_nouveau", pseudo => {
-    socket.pseudo = pseudo;
-  });
-
-  socket.on("message", message => {
-    console.log(socket.pseudo + " me parle ! Il me dit : " + message);
+  socket.on("sendNewMessage", message => {
+    message.date = new Date().toLocaleDateString();
+    message.id = Date.now();
+    message.user = socket.user;
+    const messages = writeNewMessageTodb(message);
+    socket.broadcast.emit("newMessage", messages);
   });
 });
 
