@@ -1,21 +1,20 @@
 const fs = require("fs");
 
-const HandleDB = {
-  messages: [],
-  users: [],
-  getFileState: () => {
-    return JSON.parse(fs.readFileSync("./messagesdb.json"));
-  },
-  getAllMessages: self => {
-    const json = JSON.parse(fs.readFileSync("./messagesdb.json"));
-    self.messages = json.messages;
-  },
-  writeNewMessageTodb: (self, message) => {
-    self.messages.push(message);
-    const f = self.getFileState();
-    f.messages = self.messages;
-    fs.writeFileSync("./messagesdb.json", JSON.stringify(f));
-  }
-};
+function getFileState() {
+  return JSON.parse(fs.readFileSync("./messagesdb.json"));
+}
 
-exports.dbHandler = HandleDB;
+function getAllMessages() {
+  const json = JSON.parse(fs.readFileSync("./messagesdb.json"));
+  return json.messages;
+}
+
+function writeNewMessageTodb(message) {
+  const f = getFileState();
+  f.messages.push(message);
+  fs.writeFileSync("./messagesdb.json", JSON.stringify(f));
+  return f.messages;
+}
+
+exports.getAllMessages = getAllMessages;
+exports.writeNewMessageTodb = writeNewMessageTodb;
